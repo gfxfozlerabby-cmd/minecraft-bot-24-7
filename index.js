@@ -1,53 +1,70 @@
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 
-const bot = mineflayer.createBot({
-  host: 'fozlerabby.falixsrv.me', 
-  port: 28663,                    
-  username: 'Justice_Player',     
-  version: '1.21.1'               
-});
+function createBot() {
+    const bot = mineflayer.createBot({
+        host: 'fozlerabby.falixsrv.me', 
+        port: 28663,                    
+        username: 'Justice_Player',     
+        version: '1.21.1'               
+    });
 
-bot.loadPlugin(pathfinder);
+    bot.loadPlugin(pathfinder);
 
-bot.on('spawn', () => {
-  console.log('Justice_Player এখন একজন নুব প্লেয়ারের মতো খেলবে! 🕹️');
-  const mcData = require('minecraft-data')(bot.version);
-  const movements = new Movements(bot, mcData);
-  bot.pathfinder.setMovements(movements);
+    bot.on('spawn', () => {
+        console.log('Justice_Player এখন পুরোপুরি অটোমেটিক! 😴⚔️');
+        const mcData = require('minecraft-data')(bot.version);
+        const movements = new Movements(bot, mcData);
+        bot.pathfinder.setMovements(movements);
 
-  // নুব প্লেয়ারের মতো অগোছালো কাজ করা
-  setInterval(() => {
-    const randomAction = Math.random();
+        // বাড়িতে অটো টেলিপোর্ট
+        bot.chat('/tp Justice_Player 861 76 -1014');
+    });
 
-    if (randomAction < 0.4) {
-      // ১. অকারণে একটু সামনে-পিছে হাঁটা
-      const x = Math.floor(Math.random() * 6) - 3;
-      const z = Math.floor(Math.random() * 6) - 3;
-      const pos = bot.entity.position.offset(x, 0, z);
-      bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y, pos.z, 1));
-    } 
-    else if (randomAction < 0.7) {
-      // ২. অকারণে লাফ দেওয়া (Jump)
-      bot.setControlState('jump', true);
-      setTimeout(() => bot.setControlState('jump', false), 500);
-    } 
-    else {
-      // ৩. আকাশের দিকে বা চারদিকে হাঁ করে তাকিয়ে থাকা
-      const yaw = Math.random() * Math.PI * 2;
-      const pitch = (Math.random() - 0.5) * Math.PI;
-      bot.look(yaw, pitch);
-    }
-  }, 5000); // প্রতি ৫ সেকেন্ড পর পর নতুন কোনো নুব কাজ করবে
-});
+    // 🌙 রাত হলে অটো ঘুমানোর ফাংশন
+    bot.on('time', () => {
+        const time = bot.time.timeOfDay;
+        
+        // মাইনক্রাফটে ১৩০০০ থেকে ২৩০০০ সময় মানে হলো রাত
+        if (time >= 13000 && time <= 23000) {
+            if (!bot.isSleeping) {
+                // আশেপাশে ১০ ব্লকের মধ্যে বিছানা খোঁজা
+                const bed = bot.findBlock({
+                    matching: block => bot.isABed(block),
+                    maxDistance: 10
+                });
 
-// কেউ চ্যাটে কিছু লিখলে নুব স্টাইলে উত্তর দেওয়া
-bot.on('chat', (username, message) => {
-  if (username === bot.username) return;
-  if (message.includes('hello') || message.includes('hi')) {
-    bot.chat('Hi! I am noob Justice_Player :P');
-  }
-});
+                if (bed) {
+                    bot.sleep(bed).catch(err => console.log('এখন ঘুমানো যাচ্ছে না:', err.message));
+                }
+            }
+        } else if (bot.isSleeping) {
+            // সকাল হলে অটো উঠে যাওয়া
+            bot.wake().catch(err => console.log('উঠতে পারছি না:', err.message));
+        }
+    });
 
-bot.on('error', (err) => console.log('Error:', err));
-bot.on('kicked', (reason) => console.log('Kicked for:', reason));
+    // ⚔️ জম্বি/ক্রিপার দেখলে অটো ফাইট এবং অস্ত্র নেওয়া
+    bot.on('physicsTick', async () => {
+        if (bot.isSleeping) return; // ঘুমানোর সময় ফাইট করবে না
+
+        const entity = bot.nearestEntity((e) => 
+            (e.type === 'mob') && e.position.distanceTo(bot.entity.position) < 12
+        );
+
+        if (entity) {
+            // ব্যাগ থেকে তলোয়ার বের করা
+            const sword = bot.inventory.items().find(item => item.name.includes('sword'));
+            if (sword) await bot.equip(sword, 'hand');
+            
+            bot.lookAt(entity.position.offset(0, entity.height, 0));
+            bot.attack(entity);
+        }
+    });
+
+    // বের হয়ে গেলে অটো রিস্টার্ট
+    bot.on('end', () => setTimeout(createBot, 2000));
+    bot.on('error', (err) => console.log('Error:', err));
+}
+
+createBot();
