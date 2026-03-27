@@ -2,8 +2,8 @@ const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder');
 
 const bot = mineflayer.createBot({
-  host: 'fozlerabby.falixsrv.me', // এখানে তোমার সার্ভার আইপি বসাও
-  port: 28663,             
+  host: '162.55.28.90', // সরাসরি আইপি ব্যবহার করে দেখো
+  port: 28663,
   username: 'Justice_Player',
   version: '1.21.1'
 });
