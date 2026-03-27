@@ -1,0 +1,13 @@
+{
+  "name": "minecraft-bot",
+  "version": "1.0.0",
+  "description": "24/7 Minecraft Bot for Ikram",
+  "main": "index.js",
+  "dependencies": {
+    "mineflayer": "^4.20.0",
+    "mineflayer-pathfinder": "^2.4.5"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
