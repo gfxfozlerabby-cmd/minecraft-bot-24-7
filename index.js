@@ -6,7 +6,8 @@ function createBot() {
         host: 'fozlerabby.falixsrv.me', 
         port: 28663,                    
         username: 'Justice_Player',     
-        version: '1.21.1'               
+        version: '1.21.1'
+        connectTimeout: 60000 // এটি কানেকশনের জন্য ১ মিনিট সময় দেবে
     });
 
     bot.loadPlugin(pathfinder);
