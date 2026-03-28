@@ -6,10 +6,22 @@ function createBot() {
         host: 'fozlerabby.falixsrv.me', 
         port: 28663,                    
         username: 'Justice_Player',     
-        version: '1.21.1',
-        hideErrors: true
+        version: '1.21.1'
     });
 
+    bot.loadPlugin(pathfinder);
+
+    bot.on('spawn', () => {
+        console.log('বট সচল! 🏃‍♂️');
+        bot.chat('/tp Justice_Player 861 76 -1014');
+    });
+
+    // বের হয়ে গেলে আবার ঢুকবে
+    bot.on('end', () => setTimeout(createBot, 5000));
+    bot.on('error', (err) => console.log('Log:', err.message));
+}
+
+createBot();
     bot.loadPlugin(pathfinder);
 
     bot.on('spawn', () => {
