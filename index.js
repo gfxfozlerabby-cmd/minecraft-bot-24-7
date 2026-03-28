@@ -6,61 +6,47 @@ function createBot() {
         host: 'fozlerabby.falixsrv.me', 
         port: 28663,                    
         username: 'Justice_Player',     
-        version: '1.21.1'               
+        version: '1.21.1',
+        hideErrors: true
     });
 
     bot.loadPlugin(pathfinder);
 
     bot.on('spawn', () => {
-        console.log('নুব বট আবার ফিরে এসেছে! 🕹️');
+        console.log('নুব বট এখন ঘুমাতেও জানে! 💤');
         const mcData = require('minecraft-data')(bot.version);
         const movements = new Movements(bot, mcData);
         bot.pathfinder.setMovements(movements);
-
+        
         // বাড়িতে টেলিপোর্ট
         bot.chat('/tp Justice_Player 861 76 -1014');
 
-        // --- নুব স্টাইল অগোছালো কাজ (Script) ---
+        // --- নুব স্টাইল অগোছালো কাজ (দিনের বেলা) ---
         setInterval(() => {
-            if (bot.isSleeping) return;
+            if (bot.isSleeping) return; // ঘুমানোর সময় ডিস্টার্ব করবে না
 
-            const randomAction = Math.random();
-
-            if (randomAction < 0.3) {
-                // ১. অকারণে এদিক সেদিক হাঁটা
-                const x = 861 + (Math.floor(Math.random() * 10) - 5);
-                const z = -1014 + (Math.floor(Math.random() * 10) - 5);
+            const rand = Math.random();
+            if (rand < 0.25) {
+                // ১. অকারণে এদিক সেদিক হাঁটা (৮ ব্লকের মধ্যে)
+                const x = 861 + (Math.floor(Math.random() * 16) - 8);
+                const z = -1014 + (Math.floor(Math.random() * 16) - 8);
                 bot.pathfinder.setGoal(new goals.GoalNear(x, 76, z, 1));
-            } 
-            else if (randomAction < 0.5) {
-                // ২. সামনের কোনো ব্লককে অকারণে ঘুষি মারা (Punching/Mining)
-                const block = bot.blockAtCursor(4);
-                if (block && block.name !== 'air') {
-                    bot.dig(block).catch(() => {});
+            } else if (rand < 0.5) {
+                // ২. অকারণে লাফানো আর আকাশ দেখা
+                bot.setControlState('jump', true);
+                bot.look(Math.random() * 6, (Math.random() - 0.5) * 1.5);
+                setTimeout(() => bot.setControlState('jump', false), 500);
+            } else if (rand < 0.7) {
+                // ৩. সামনের ব্লককে অকারণে ঘুষি মারা (নুব স্টাইল)
+                const targetBlock = bot.blockAtCursor(4);
+                if (targetBlock && targetBlock.name !== 'air') {
+                    bot.dig(targetBlock).catch(() => {});
                 }
             }
-            else if (randomAction < 0.7) {
-                // ৩. অকারণে লাফানো এবং আকাশের দিকে তাকিয়ে থাকা
-                bot.setControlState('jump', true);
-                bot.look(Math.random() * 6, (Math.random() - 0.5) * 2);
-                setTimeout(() => bot.setControlState('jump', false), 500);
-            }
-        }, 5000); // প্রতি ৫ সেকেন্ডে নতুন নুব কাজ করবে
+        }, 7000); 
     });
 
-    // রাত হলে ঘুমানোর নুব অভ্যাস
+    // --- ৪. অটো ঘুমানোর স্ক্রিপ্ট ---
     bot.on('time', () => {
-        if (bot.time.timeOfDay >= 13000 && bot.time.timeOfDay <= 23000) {
-            const bed = bot.findBlock({ matching: block => bot.isABed(block), maxDistance: 5 });
-            if (bed) bot.sleep(bed).catch(() => {});
-        } else if (bot.isSleeping) {
-            bot.wake().catch(() => {});
-        }
-    });
-
-    // অটো রি-কানেক্ট
-    bot.on('end', () => setTimeout(createBot, 5000));
-    bot.on('error', (err) => console.log('Error:', err.message));
-}
-
-createBot();
+        const time = bot.time.timeOfDay;
+        if (time >=
